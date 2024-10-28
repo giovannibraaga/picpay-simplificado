@@ -1,6 +1,6 @@
 package com.example
 
-import com.example.plugins.*
+import com.br.picpaysimplificado.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*

@@ -1,4 +1,3 @@
-
 val kotlin_version: String by project
 val logback_version: String by project
 val postgres_version: String by project
@@ -29,6 +28,9 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
     implementation("org.postgresql:postgresql:$postgres_version")
+    implementation("com.h2database:h2:2.1.214")
+    implementation("org.hibernate.orm:hibernate-core:6.2.11.Final")
+    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
     implementation("com.h2database:h2:$h2_version")
     implementation("io.ktor:ktor-server-cors-jvm")
     implementation("io.ktor:ktor-server-netty-jvm")
