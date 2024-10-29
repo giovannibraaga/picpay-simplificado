@@ -1,6 +1,7 @@
 package com.br.picpaysimplificado
 
-import com.br.picpaysimplificado.plugins.configureDatabases
+import com.br.picpaysimplificado.database.DatabaseConnection
+import com.br.picpaysimplificado.database.users.UserDAO
 import com.br.picpaysimplificado.plugins.configureHTTP
 import com.br.picpaysimplificado.plugins.configureRouting
 import com.br.picpaysimplificado.plugins.configureSerialization
@@ -11,8 +12,10 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    val entityManager = DatabaseConnection.getEntityManager()
+    val userDAO = UserDAO(entityManager)
+
     configureSerialization()
-    configureDatabases()
     configureHTTP()
-    configureRouting()
+    configureRouting(userDAO)
 }
