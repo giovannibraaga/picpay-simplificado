@@ -1,6 +1,5 @@
 package com.br.picpaysimplificado.database.users
 
-import com.br.picpaysimplificado.models.users.User
 import com.br.picpaysimplificado.models.users.UserType
 import jakarta.persistence.*
 
@@ -19,7 +18,7 @@ class UserEntity(
     val lastName: String = "",
 
     @Column(name = "balance")
-    val balance: Double = 0.0,
+    var balance: Double = 0.0,
 
     @Column(name = "cpf", unique = true)
     val cpf: String = "",
@@ -32,18 +31,4 @@ class UserEntity(
 
     @Column(name = "user_type")
     val userType: UserType = UserType.COMUM
-) {
-
-    fun toModel(): User {
-        return User(
-            this.id,
-            this.firstName,
-            this.lastName,
-            this.balance,
-            this.cpf,
-            this.email,
-            this.password,
-            this.userType
-        )
-    }
-}
+)
