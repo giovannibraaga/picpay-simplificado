@@ -3,7 +3,9 @@ package com.br.picpaysimplificado.database.transactions
 import com.br.picpaysimplificado.database.DAO
 import com.br.picpaysimplificado.database.users.UserEntity
 import com.br.picpaysimplificado.models.transactions.Transactions
-import com.br.picpaysimplificado.models.users.User
+import com.br.picpaysimplificado.models.users.UserType
+import io.ktor.client.*
+import io.ktor.client.request.*
 import jakarta.persistence.EntityManager
 
 class TransactionsDAO(manager: EntityManager) :
@@ -28,7 +30,7 @@ class TransactionsDAO(manager: EntityManager) :
         )
     }
 
-    fun processTransaction(transaction: Transactions): TransactionsEntity {
+    suspend fun processTransaction(transaction: Transactions): TransactionsEntity {
         val payer = manager.find(UserEntity::class.java, transaction.payerId)
             ?: throw IllegalArgumentException("Payer não encontrado")
         val payee = manager.find(UserEntity::class.java, transaction.payeeId)
@@ -37,27 +39,46 @@ class TransactionsDAO(manager: EntityManager) :
         if (transaction.value <= 0.0) {
             throw IllegalArgumentException("O valor da transação deve ser maior do que R$0,00")
         }
-        if (payer.userType.equals("LOJISTA")) {
+        if (payer.userType == UserType.LOJISTA) {
             throw IllegalArgumentException("Lojistas não podem realizar transações")
         }
         if (payer.balance < transaction.value) {
             throw IllegalArgumentException("Saldo insuficiente")
         }
+        if (payer.id == payee.id) {
+            throw IllegalArgumentException("Você não pode transferir dinheiro para si mesmo")
+        }
+        try {
+            payer.balance -= transaction.value
+            payee.balance += transaction.value
 
-        payer.balance -= transaction.value
-        payee.balance += transaction.value
+            manager.transaction.begin()
+            manager.merge(payer)
+            manager.merge(payee)
+            val transactionEntity = TransactionsEntity(
+                transactionValue = transaction.value,
+                payerId = payer.id,
+                payeeId = payee.id
+            )
+            manager.persist(transactionEntity)
+            manager.transaction.commit()
 
-        manager.transaction.begin()
-        manager.merge(payer)
-        manager.merge(payee)
-        val transactionEntity = TransactionsEntity(
-            transactionValue = transaction.value,
-            payerId = payer.id,
-            payeeId = payee.id
-        )
-        manager.persist(transactionEntity)
-        manager.transaction.commit()
+            val client = HttpClient()
 
-        return transactionEntity
+            notifyUser(client)
+
+            return transactionEntity
+        } catch (e: Exception) {
+            if (manager.transaction.isActive) {
+                manager.transaction.rollback()
+            }
+            throw e
+        }
+    }
+
+    suspend fun notifyUser(client: HttpClient) {
+        val notiURL = "https://util.devi.tools/api/v1/notify"
+
+        client.post(notiURL)
     }
 }
