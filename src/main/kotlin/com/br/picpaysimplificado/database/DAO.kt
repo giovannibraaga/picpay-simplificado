@@ -2,7 +2,7 @@ package com.br.picpaysimplificado.database
 
 import jakarta.persistence.EntityManager
 
-abstract class DAO<TModel, TEntity>(private val manager: EntityManager, private val entityType: Class<TEntity>) {
+abstract class DAO<TModel, TEntity>(val manager: EntityManager, private val entityType: Class<TEntity>) {
     abstract fun toModel(entity: TEntity): TModel
 
     abstract fun toEntity(model: TModel): TEntity
